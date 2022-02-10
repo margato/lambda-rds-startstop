@@ -19,7 +19,7 @@ def lambda_handler(event, context):
         for service in services:
             service.stop_instances()
     else:
-        print('Action unknown:', action)
+        print('Unknown action:', action)
 
     return {
         "statusCode": 200
