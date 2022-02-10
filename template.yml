@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Lambda to start/stop instances and reduce costs.
+
+Parameters:
+  Regions:
+    Type: String
+    Description: Regions which instances are going to be affected
+    Default: sa-east-1,us-east-1
+
+Resources:
+  LambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: startstop-instances
+      MemorySize: 128
+      Timeout: 10
+      Environment:
+        Variables:
+          REGIONS: !Ref Regions
+      Policies:
+        - Statement:
+            - Sid: RDSStartStopPolicy
+              Effect: Allow
+              Action:
+                - rds:DescribeDBInstances
+                - rds:StartDBInstance
+                - rds:StopDBInstance
+              Resource: '*'
+      CodeUri: src/
+      Handler: lambda_handler.lambda_handler
+      Runtime: python3.8
+      Events:
+        Start:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 12 ? * MON-FRI *)
+            Input: '{"action": "start"}'
+        Stop:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 20 ? * MON-FRI *)
+            Input: '{"action": "stop"}'
